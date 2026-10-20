@@ -7,13 +7,18 @@ const API_BASE = (
   (import.meta.env.DEV ? 'http://127.0.0.1:8002' : '')
 ).replace(/\/+$/, '');
 
-if (!API_BASE) {
-  throw new Error('Missing VITE_API_BASE_URL in the frontend environment.');
+function requireApiBase(): string {
+  if (!API_BASE) {
+    throw new Error(
+      'The AI Assistant backend is not configured. Set VITE_API_BASE_URL in the Vercel project environment.'
+    );
+  }
+  return API_BASE;
 }
 
 export async function fetchAssistantHealth(): Promise<AssistantHealthStatus> {
   try {
-    const res = await fetch(`${API_BASE}/api/assistant/health`);
+    const res = await fetch(`${requireApiBase()}/api/assistant/health`);
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
     }
@@ -161,7 +166,7 @@ async function assistantApiRequest<T>(
   authToken: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${requireApiBase()}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -275,7 +280,7 @@ export async function streamAssistantChat(params: StreamChatParams): Promise<voi
   let completed = false;
 
   try {
-    const response = await fetch(`${API_BASE}/api/assistant/chat`, {
+    const response = await fetch(`${requireApiBase()}/api/assistant/chat`, {
       method: 'POST',
       headers,
       body: JSON.stringify(payload),
